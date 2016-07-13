@@ -4,6 +4,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.Marker = exports.Map = exports.Container = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -34,6 +35,21 @@ var GMap = function (_React$Component) {
   }
 
   _createClass(GMap, [{
+    key: 'createUserMarker',
+    value: function createUserMarker(e) {
+      this.coordinates = {
+        lng: e.latLng.lat(),
+        lat: e.latLng.lng()
+      };
+      initialCenter: this.coordinates;
+      console.log(this.coordinates);
+    }
+
+    // static propTypes() {
+    //   newCoordinates: React.PropTypes.objectOf(React.PropTypes.number).isRequired
+    // }
+
+  }, {
     key: 'render',
     value: function render() {
       return _react2.default.createElement(
@@ -67,6 +83,9 @@ var GMap = function (_React$Component) {
       // because we can't add listeners on the map until its created
       google.maps.event.addListener(this.map, 'zoom_changed', function () {
         return _this2.handleZoomChange();
+      });
+      google.maps.event.addListener(this.map, 'click', function (event) {
+        return _this2.createUserMarker(event);
       });
     }
 
@@ -127,6 +146,151 @@ var GMap = function (_React$Component) {
 }(_react2.default.Component);
 
 exports.default = GMap;
+
+var Container = exports.Container = function (_React$Component2) {
+  _inherits(Container, _React$Component2);
+
+  function Container() {
+    _classCallCheck(this, Container);
+
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(Container).apply(this, arguments));
+  }
+
+  _createClass(Container, [{
+    key: 'render',
+    value: function render() {
+      var style = {
+        width: '100vw',
+        height: '100vh'
+      };
+      var pos = { lat: 37.759703, lng: -122.428093 };
+      return _react2.default.createElement(
+        'div',
+        { style: style },
+        _react2.default.createElement(
+          Map,
+          { google: this.props.google },
+          _react2.default.createElement(Marker, null),
+          _react2.default.createElement(Marker, { position: pos })
+        )
+      );
+    }
+  }]);
+
+  return Container;
+}(_react2.default.Component);
+
+var Map = exports.Map = function (_React$Component3) {
+  _inherits(Map, _React$Component3);
+
+  function Map() {
+    _classCallCheck(this, Map);
+
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(Map).apply(this, arguments));
+  }
+
+  _createClass(Map, [{
+    key: 'renderChildren',
+    value: function renderChildren() {
+      var _this5 = this;
+
+      var children = this.props.children;
+
+
+      if (!children) return;
+
+      return _react2.default.Children.map(children, function (c) {
+        return _react2.default.cloneElement(c, {
+          map: _this5.map,
+          google: _this5.props.google,
+          mapCenter: _this5.state.currentLocation
+        });
+      });
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      return _react2.default.createElement(
+        'div',
+        { ref: 'map' },
+        'Loading map...',
+        this.renderChildren()
+      );
+    }
+  }]);
+
+  return Map;
+}(_react2.default.Component);
+
+var evtNames = ['click', 'mouseover'];
+
+var Marker = exports.Marker = function (_React$Component4) {
+  _inherits(Marker, _React$Component4);
+
+  function Marker() {
+    _classCallCheck(this, Marker);
+
+    return _possibleConstructorReturn(this, Object.getPrototypeOf(Marker).apply(this, arguments));
+  }
+
+  _createClass(Marker, [{
+    key: 'render',
+    value: function render() {
+      return null;
+    }
+  }, {
+    key: 'componentDidUpdate',
+    value: function componentDidUpdate(prevProps) {
+      if (this.props.map !== prevProps.map || this.props.position !== prevProps.position) {
+        // The relevant props have changed
+      }
+    }
+  }, {
+    key: 'renderMarker',
+    value: function renderMarker() {
+      var _this7 = this;
+
+      var _props = this.props;
+      var map = _props.map;
+      var google = _props.google;
+      var position = _props.position;
+      var mapCenter = _props.mapCenter;
+
+
+      var pos = position || mapCenter;
+      position = new google.maps.LatLng(pos.lat, pos.lng);
+
+      var pref = {
+        map: map,
+        position: position
+      };
+      this.marker = new google.maps.Marker(pref);
+
+      evtNames.forEach(function (e) {
+        _this7.marker.addListener(e, _this7.handleEvent(e));
+      });
+    }
+  }, {
+    key: 'handleEvent',
+    value: function handleEvent(evtName) {
+      var _this8 = this;
+
+      return function (e) {
+        var evtName = 'on' + camelize(evt);
+        if (_this8.props[evtName]) {
+          _this8.props[evtName](_this8.props, _this8.marker, e);
+        }
+      };
+    }
+  }]);
+
+  return Marker;
+}(_react2.default.Component);
+
+Marker.propTypes = {
+  position: _react2.default.PropTypes.object,
+  map: _react2.default.PropTypes.object
+};
 
 },{"react":168}],2:[function(require,module,exports){
 'use strict';

@@ -9,6 +9,20 @@ export default class GMap extends React.Component {
     };
   };
 
+  
+  createUserMarker(e)  {
+    this.coordinates = {
+      lng: e.latLng.lat(),
+      lat: e.latLng.lng()
+    }
+    initialCenter: this.coordinates
+    console.log(this.coordinates);
+  }
+
+  // static propTypes() {
+  //   newCoordinates: React.PropTypes.objectOf(React.PropTypes.number).isRequired
+  // }
+
   static propTypes() {
     initialCenter: React.PropTypes.objectOf(React.PropTypes.number).isRequired
   }
@@ -33,6 +47,7 @@ export default class GMap extends React.Component {
     // have to define google maps event listeners here too
     // because we can't add listeners on the map until its created
     google.maps.event.addListener(this.map, 'zoom_changed', ()=> this.handleZoomChange())
+    google.maps.event.addListener(this.map, 'click', (event)=> this.createUserMarker(event))
   }
 
   // clean up event listeners when component unmounts
@@ -76,4 +91,94 @@ export default class GMap extends React.Component {
       zoom: this.map.getZoom()
     })
   }
+}
+
+export class Container extends React.Component {
+  render() {
+    const style = {
+      width: '100vw',
+      height: '100vh'
+    }
+    const pos = {lat: 37.759703, lng: -122.428093}
+    return (
+      <div style={style}>
+        <Map google={this.props.google}>
+          <Marker />
+          <Marker position={pos} />
+        </Map>
+      </div>
+    )
+  }
+}
+
+export class Map extends React.Component {
+  renderChildren() {
+    const {children} = this.props;
+
+    if (!children) return;
+
+    return React.Children.map(children, c => {
+      return React.cloneElement(c, {
+        map: this.map,
+        google: this.props.google,
+        mapCenter: this.state.currentLocation
+      });
+    })
+  }
+
+  render() {
+    return (
+      <div ref='map'>
+        Loading map...
+        {this.renderChildren()}
+      </div>
+    )
+  }
+}
+
+const evtNames = ['click', 'mouseover'];
+
+
+
+export class Marker extends React.Component {
+  render() {
+      return null;
+    }
+  componentDidUpdate(prevProps) {
+    if ((this.props.map !== prevProps.map) ||
+      (this.props.position !== prevProps.position)) {
+        // The relevant props have changed
+    }
+  }
+  renderMarker() {  
+   let {
+      map, google, position, mapCenter
+    } = this.props;
+
+    let pos = position || mapCenter;
+    position = new google.maps.LatLng(pos.lat, pos.lng);
+
+    const pref = {
+      map: map,
+      position: position
+    };
+    this.marker = new google.maps.Marker(pref);
+
+    evtNames.forEach(e => {
+      this.marker.addListener(e, this.handleEvent(e));
+    })
+  }
+  handleEvent(evtName) {
+    return (e) => {
+      const evtName = `on${camelize(evt)}`
+      if (this.props[evtName]) {
+        this.props[evtName](this.props, this.marker, e);
+      }
+    }
+  }
+}
+
+Marker.propTypes = {
+  position: React.PropTypes.object,
+  map: React.PropTypes.object
 }
