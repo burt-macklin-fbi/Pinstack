@@ -10,31 +10,28 @@ export default class GMap extends React.Component {
   };
 
   
-  createUserMarker(e)  {
-    this.coordinates = {
+  createUserMarker(e) {
+    this.initialCenter = {
       lng: e.latLng.lat(),
       lat: e.latLng.lng()
     }
-    initialCenter: this.coordinates
-    console.log(this.coordinates);
+    // console.log(this.initialCenter);
+
+    this.createMarker(this.initialCenter);
   }
 
-  // static propTypes() {
-  //   newCoordinates: React.PropTypes.objectOf(React.PropTypes.number).isRequired
-  // }
-
+  // this is just a prop validator
   static propTypes() {
     initialCenter: React.PropTypes.objectOf(React.PropTypes.number).isRequired
   }
 
   render() {
     return <div className="GMap">
-      <div className='UpdatedText'>
+      <div className="UpdatedText">
         <p>Current Zoom: { this.state.zoom }</p>
       </div>
-      <div className='GMap-canvas' ref="mapCanvas">
+      <div className='GMap-canvas' ref="mapCanvas" />
       </div>
-    </div>
   }
 
   componentDidMount() {
@@ -46,6 +43,9 @@ export default class GMap extends React.Component {
   
     // have to define google maps event listeners here too
     // because we can't add listeners on the map until its created
+    // event handlers should be bound within the constructor eg. this.handler.bind(this)
+    // () => this.handler() is the same as .bind(this) ((now you can refer elsewhere to just this.handler))
+    // binding event handlers are bound once for every instance
     google.maps.event.addListener(this.map, 'zoom_changed', ()=> this.handleZoomChange())
     google.maps.event.addListener(this.map, 'click', (event)=> this.createUserMarker(event))
   }
@@ -63,16 +63,19 @@ export default class GMap extends React.Component {
     return new google.maps.Map(this.refs.mapCanvas, mapOptions)
   }
 
-  mapCenter() {
+  mapCenter(e) {
+    console.log(e);
+    // new google.maps.LatLng(-34.397, 150.644)
     return new google.maps.LatLng(
       this.props.initialCenter.lat,
       this.props.initialCenter.lng
     )
   }
 
-  createMarker() {
+  createMarker(e) {
+    // console.log(e);
     return new google.maps.Marker({
-      position: this.mapCenter(),
+      position: this.mapCenter(e),
       map: this.map
     })
   }
@@ -134,6 +137,12 @@ export class Map extends React.Component {
       </div>
     )
   }
+}
+// defining PropTypes is a way to validate prop values, its only checked in development mode
+Map.PropTypes = {
+  google: React.PropTypes.object,
+  zoom: React.PropTypes.number,
+  initialCenter: React.PropTypes.object
 }
 
 const evtNames = ['click', 'mouseover'];

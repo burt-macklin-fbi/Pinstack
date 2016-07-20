@@ -10,7 +10,7 @@ var App = React.createClass({
 });
 
 var initialCenter = { lng: -90.1056957, lat: 29.9717272 }
-
+console.log(initialCenter);
 ReactDOM.render(
 	<div>
 		<App>
