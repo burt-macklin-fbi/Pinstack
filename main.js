@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -8,7 +8,7 @@ exports.Marker = exports.Map = exports.Container = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = require("react");
+var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -29,46 +29,90 @@ var GMap = function (_React$Component) {
     var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(GMap).call(this, props, context));
 
     _this.state = {
-      zoom: 10
+      zoom: 10,
+      initialCenter: { lng: -90.1056957, lat: 29.9717272 },
+      newCoodinates: { lng: '', lat: '' }
     };
     return _this;
   }
 
   _createClass(GMap, [{
-    key: "createUserMarker",
-    value: function createUserMarker(e) {
-      this.initialCenter = {
-        lng: e.latLng.lat(),
-        lat: e.latLng.lng()
-      };
-      // console.log(this.initialCenter);
+    key: 'findGeolocation',
+    value: function findGeolocation() {
+      // var map = new google.maps.Map(document.getElementById('map'), {
+      //   center: {lat: -34.397, lng: 150.644},
+      //   zoom: 6
+      // });
 
-      this.createMarker(this.initialCenter);
+      // var infoWindow = new google.maps.InfoWindow({map: map});
+
+      // Try HTML5 geolocation.
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+          console.log("Hey not sure what my loc is");
+          // this.setState({
+          //   initialCenter: {
+          //     lat: position.coords.latitude,
+          //     lng: position.coords.longitude
+          //   }
+          // })
+
+          // infoWindow.setPosition(this.state.initialCenter);
+          // infoWindow.setContent('Location found.');
+          // map.setCenter(this.state.initialCenter);
+        }, function () {
+          // handleLocationError(true, infoWindow, map.getCenter());
+        });
+      } else {}
+        // Browser doesn't support Geolocation
+        // handleLocationError(false, infoWindow, map.getCenter());
+
+        // function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+        //   infoWindow.setPosition(pos);
+        //   infoWindow.setContent(browserHasGeolocation ?
+        //     'Error: The Geolocation service failed.' :
+        //     'Error: Your browser doesn\'t support geolocation.');
+        // }
+    }
+  }, {
+    key: 'createUserMarker',
+    value: function createUserMarker(e) {
+      this.setState({
+        newCoodinates: {
+          lng: e.latLng.lng(),
+          lat: e.latLng.lat()
+        }
+      });
+      // pass this state to createNewMarker constructor
+      this.createNewMarker(this.newCoodinates);
     }
 
     // this is just a prop validator
+    // static propTypes() {
+    //   initialCenter: React.PropTypes.objectOf(React.PropTypes.number).isRequired
+    // }
 
   }, {
-    key: "render",
+    key: 'render',
     value: function render() {
       return _react2.default.createElement(
-        "div",
-        { className: "GMap" },
+        'div',
+        { className: 'GMap' },
         _react2.default.createElement(
-          "div",
-          { className: "UpdatedText" },
+          'div',
+          { className: 'UpdatedText' },
           _react2.default.createElement(
-            "p",
+            'p',
             null,
-            "Current Zoom: ",
+            'Current Zoom: ',
             this.state.zoom
           )
         ),
-        _react2.default.createElement("div", { className: "GMap-canvas", ref: "mapCanvas" })
+        _react2.default.createElement('div', { className: 'GMap-canvas', ref: 'mapCanvas' })
       );
     }
   }, {
-    key: "componentDidMount",
+    key: 'componentDidMount',
     value: function componentDidMount() {
       var _this2 = this;
 
@@ -78,6 +122,7 @@ var GMap = function (_React$Component) {
       this.marker = this.createMarker();
       this.infoWindow = this.createInfoWindow();
 
+      this.geolocation = this.findGeolocation();
       // have to define google maps event listeners here too
       // because we can't add listeners on the map until its created
       // event handlers should be bound within the constructor eg. this.handler.bind(this)
@@ -94,12 +139,12 @@ var GMap = function (_React$Component) {
     // clean up event listeners when component unmounts
 
   }, {
-    key: "componentDidUnMount",
+    key: 'componentDidUnMount',
     value: function componentDidUnMount() {
       google.maps.event.clearListeners(map, 'zoom_changed');
     }
   }, {
-    key: "createMap",
+    key: 'createMap',
     value: function createMap() {
       var mapOptions = {
         zoom: this.state.zoom,
@@ -108,23 +153,34 @@ var GMap = function (_React$Component) {
       return new google.maps.Map(this.refs.mapCanvas, mapOptions);
     }
   }, {
-    key: "mapCenter",
-    value: function mapCenter(e) {
-      console.log(e);
-      // new google.maps.LatLng(-34.397, 150.644)
-      return new google.maps.LatLng(this.props.initialCenter.lat, this.props.initialCenter.lng);
+    key: 'mapCenter',
+    value: function mapCenter() {
+      return new google.maps.LatLng(this.state.initialCenter.lat, this.state.initialCenter.lng);
     }
   }, {
-    key: "createMarker",
-    value: function createMarker(e) {
-      // console.log(e);
+    key: 'newMapCenter',
+    value: function newMapCenter() {
+      console.log(this.state.newCoodinates);
+      return new google.maps.LatLng(this.state.newCoodinates.lat, this.state.newCoodinates.lng);
+    }
+  }, {
+    key: 'createMarker',
+    value: function createMarker() {
       return new google.maps.Marker({
-        position: this.mapCenter(e),
+        position: this.mapCenter(),
         map: this.map
       });
     }
   }, {
-    key: "createInfoWindow",
+    key: 'createNewMarker',
+    value: function createNewMarker() {
+      return new google.maps.Marker({
+        position: this.newMapCenter(),
+        map: this.map
+      });
+    }
+  }, {
+    key: 'createInfoWindow',
     value: function createInfoWindow() {
       var contentString = "<div class='InfoWindow'>I'm a Window that contains Info Yay</div>";
       return new google.maps.InfoWindow({
@@ -134,16 +190,11 @@ var GMap = function (_React$Component) {
       });
     }
   }, {
-    key: "handleZoomChange",
+    key: 'handleZoomChange',
     value: function handleZoomChange() {
       this.setState({
         zoom: this.map.getZoom()
       });
-    }
-  }], [{
-    key: "propTypes",
-    value: function propTypes() {
-      initialCenter: _react2.default.PropTypes.objectOf(_react2.default.PropTypes.number).isRequired;
     }
   }]);
 
@@ -162,7 +213,7 @@ var Container = exports.Container = function (_React$Component2) {
   }
 
   _createClass(Container, [{
-    key: "render",
+    key: 'render',
     value: function render() {
       var style = {
         width: '100vw',
@@ -170,7 +221,7 @@ var Container = exports.Container = function (_React$Component2) {
       };
       var pos = { lat: 37.759703, lng: -122.428093 };
       return _react2.default.createElement(
-        "div",
+        'div',
         { style: style },
         _react2.default.createElement(
           Map,
@@ -195,7 +246,7 @@ var Map = exports.Map = function (_React$Component3) {
   }
 
   _createClass(Map, [{
-    key: "renderChildren",
+    key: 'renderChildren',
     value: function renderChildren() {
       var _this5 = this;
 
@@ -213,12 +264,12 @@ var Map = exports.Map = function (_React$Component3) {
       });
     }
   }, {
-    key: "render",
+    key: 'render',
     value: function render() {
       return _react2.default.createElement(
-        "div",
-        { ref: "map" },
-        "Loading map...",
+        'div',
+        { ref: 'map' },
+        'Loading map...',
         this.renderChildren()
       );
     }
@@ -247,19 +298,19 @@ var Marker = exports.Marker = function (_React$Component4) {
   }
 
   _createClass(Marker, [{
-    key: "render",
+    key: 'render',
     value: function render() {
       return null;
     }
   }, {
-    key: "componentDidUpdate",
+    key: 'componentDidUpdate',
     value: function componentDidUpdate(prevProps) {
       if (this.props.map !== prevProps.map || this.props.position !== prevProps.position) {
         // The relevant props have changed
       }
     }
   }, {
-    key: "renderMarker",
+    key: 'renderMarker',
     value: function renderMarker() {
       var _this7 = this;
 
@@ -284,12 +335,12 @@ var Marker = exports.Marker = function (_React$Component4) {
       });
     }
   }, {
-    key: "handleEvent",
+    key: 'handleEvent',
     value: function handleEvent(evtName) {
       var _this8 = this;
 
       return function (e) {
-        var evtName = "on" + camelize(evt);
+        var evtName = 'on' + camelize(evt);
         if (_this8.props[evtName]) {
           _this8.props[evtName](_this8.props, _this8.marker, e);
         }
@@ -321,19 +372,18 @@ var App = React.createClass({
 	displayName: 'App',
 
 	render: function render() {
-		return React.createElement(_Component2.default, { initialCenter: initialCenter });
+		return React.createElement(_Component2.default, null);
 	}
 });
 
-var initialCenter = { lng: -90.1056957, lat: 29.9717272 };
-console.log(initialCenter);
+// var initialCenter = { lng: -90.1056957, lat: 29.9717272 }
 ReactDOM.render(React.createElement(
 	'div',
 	null,
 	React.createElement(
 		App,
 		null,
-		React.createElement(_Component2.default, { initialCenter: initialCenter })
+		React.createElement(_Component2.default, null)
 	)
 ), document.querySelector('#app'));
 

@@ -5,25 +5,64 @@ export default class GMap extends React.Component {
     super(props, context);
 
     this.state = {
-      zoom: 10 
+      zoom: 10,
+      initialCenter: { lng: -90.1056957, lat: 29.9717272 },
+      newCoodinates: { lng: '', lat: '' } 
     };
   };
 
+  findGeolocation() {
+    // var map = new google.maps.Map(document.getElementById('map'), {
+    //   center: {lat: -34.397, lng: 150.644},
+    //   zoom: 6
+    // });
+
+    // var infoWindow = new google.maps.InfoWindow({map: map});
+
+    // Try HTML5 geolocation.
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        console.log("Hey not sure what my loc is");
+        // this.setState({
+        //   initialCenter: {
+        //     lat: position.coords.latitude,
+        //     lng: position.coords.longitude
+        //   }
+        // })
+
+        // infoWindow.setPosition(this.state.initialCenter);
+        // infoWindow.setContent('Location found.');
+        // map.setCenter(this.state.initialCenter);
+      }, function() {
+        // handleLocationError(true, infoWindow, map.getCenter());
+      });
+    } else {
+      // Browser doesn't support Geolocation
+      // handleLocationError(false, infoWindow, map.getCenter());
+    }
+    // function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+    //   infoWindow.setPosition(pos);
+    //   infoWindow.setContent(browserHasGeolocation ?
+    //     'Error: The Geolocation service failed.' :
+    //     'Error: Your browser doesn\'t support geolocation.');
+    // }
+  }
   
   createUserMarker(e) {
-    this.initialCenter = {
-      lng: e.latLng.lat(),
-      lat: e.latLng.lng()
-    }
-    // console.log(this.initialCenter);
-
-    this.createMarker(this.initialCenter);
+    this.setState({
+      newCoodinates: {
+        lng: e.latLng.lng(),
+        lat: e.latLng.lat()
+      }
+    })
+    // pass this state to createNewMarker constructor
+    this.createNewMarker(this.newCoodinates);
   }
 
   // this is just a prop validator
-  static propTypes() {
-    initialCenter: React.PropTypes.objectOf(React.PropTypes.number).isRequired
-  }
+  // static propTypes() {
+  //   initialCenter: React.PropTypes.objectOf(React.PropTypes.number).isRequired
+  // }
 
   render() {
     return <div className="GMap">
@@ -41,6 +80,7 @@ export default class GMap extends React.Component {
     this.marker = this.createMarker()
     this.infoWindow = this.createInfoWindow()
   
+    this.geolocation = this.findGeolocation()
     // have to define google maps event listeners here too
     // because we can't add listeners on the map until its created
     // event handlers should be bound within the constructor eg. this.handler.bind(this)
@@ -63,19 +103,31 @@ export default class GMap extends React.Component {
     return new google.maps.Map(this.refs.mapCanvas, mapOptions)
   }
 
-  mapCenter(e) {
-    console.log(e);
-    // new google.maps.LatLng(-34.397, 150.644)
+  mapCenter() {
     return new google.maps.LatLng(
-      this.props.initialCenter.lat,
-      this.props.initialCenter.lng
+      this.state.initialCenter.lat,
+      this.state.initialCenter.lng
     )
   }
 
-  createMarker(e) {
-    // console.log(e);
+  newMapCenter() {
+    console.log(this.state.newCoodinates);
+    return new google.maps.LatLng(
+      this.state.newCoodinates.lat,
+      this.state.newCoodinates.lng
+    )
+  }
+
+  createMarker() {
     return new google.maps.Marker({
-      position: this.mapCenter(e),
+      position: this.mapCenter(),
+      map: this.map
+    })
+  }
+
+  createNewMarker() {
+    return new google.maps.Marker({
+      position: this.newMapCenter(),
       map: this.map
     })
   }

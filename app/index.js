@@ -5,16 +5,15 @@ import GMap from './Component';
 
 var App = React.createClass({
   render: function() {
-    return <GMap initialCenter={initialCenter} />;
+    return <GMap />;
   }
 });
 
-var initialCenter = { lng: -90.1056957, lat: 29.9717272 }
-console.log(initialCenter);
+// var initialCenter = { lng: -90.1056957, lat: 29.9717272 }
 ReactDOM.render(
 	<div>
 		<App>
-			<GMap initialCenter={initialCenter} />
+			<GMap/>
 		</App>
 	</div>,
 	document.querySelector('#app')
