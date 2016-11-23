@@ -4,7 +4,7 @@ function initMap() {
 		center: {lat: -34.397, lng: 150.644},
 		zoom: 6
     });
-    var infoWindow = new google.maps.InfoWindow({map: map});
+    // var infoWindow = new google.maps.InfoWindow({map: map});
 
     var marker = new google.maps.Marker({
 		position: map.center,
@@ -12,23 +12,45 @@ function initMap() {
     });
 
     map.addListener('click', function(e) {
-    	//get all info
-    	getAllInfo(e);
+    	
 
-	    // var lat = e.latLng.lat();
-	    // var lng = e.latLng.lng();
-	    // console.log("Lat: " + lat + ", Long: " + lng);
-	});
+      //inhide info box
+      var info = document.getElementById('info-box');
+      info.className += " active";
 
-	function getAllInfo(e) {
-		//pop up info box
-		//get name
-		placeMarkerAndPanTo(e.latLng, map);
-	}
+      //get all info
+      var name;
+	    var lat = e.latLng.lat();
+	    var lng = e.latLng.lng();
+
+      //reset map to marker
+      placeMarkerAndPanTo(e.latLng, map);
+
+      var submit = document.getElementById('submit');
+      submit.addEventListener("click", function() { 
+        name = document.getElementById('name').value;
+
+        console.log("Name: " + name + ", Lat: " + lat + ", Long: " + lng);
+      }, false);
+
+      //prepare mocky info
+      var xhr = new XMLHttpRequest();
+      xhr.open('PUT', "//www.mocky.io/v2/5185415ba171ea3a00704eed", true);
+      xhr.send();
+
+      xhr.addEventListener("readystatechange", processRequest, false);
+
+      function processRequest(e) {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            // time to partay!!!
+        }
+      }
+
+	}, false);
 
 
 
-    // Try HTML5 geolocation.
+  // Try HTML5 geolocation.
   //   if (navigator.geolocation) {
   //     navigator.geolocation.getCurrentPosition(function(position) {
   //       var pos = {

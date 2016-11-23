@@ -1,0 +1,21 @@
+.info-box {
+	max-width: 500px;
+	background-color: #FFFFFF;
+	padding: 20px;
+	position: absolute;
+    top: 50px;
+    left: 50px;
+    right: 0;
+    display: none;
+
+    &.active {
+    	display: block;
+    }
+
+	label {
+
+	}
+	input {
+
+	}
+}
