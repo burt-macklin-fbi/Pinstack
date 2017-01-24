@@ -2,10 +2,11 @@
 var map;
 
 function initMap() {
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: new google.maps.LatLng(2.8,-187.3),
-    zoom: 2
-  });
+  var bounds = new google.maps.LatLngBounds();
+  // var loc = new google.maps.LatLng();
+  // bounds.extend(loc);
+
+  map = new google.maps.Map(document.getElementById('map'), {});
   //get all markers from Apiary
   var request = new XMLHttpRequest();
   request.open('GET', 'https://private-979a5-test11968.apiary-mock.com/markers');
@@ -16,13 +17,14 @@ function initMap() {
       // console.log('Headers:', this.getAllResponseHeaders());
       // console.log('Body:', this.responseText);
       markers_callback(this.response, function(coords) {
-        console.log(coords);
+        bounds.extend(coords); //each marker
       });
+      map.fitBounds(bounds); //auto-zoom
+      map.panToBounds(bounds) //auto-center
     }
   };
   request.send();  
-  //show all markers
-  
+  //show all markers  
 
   map.addListener('click', function(e) {
     markerCreate(e);
@@ -37,13 +39,15 @@ function markers_callback(response, callback) {
     var lat = json[i].lat;
     var lng = json[i].lng;
     var coords = [lng, lat];
-    var latLng = new google.maps.LatLng(coords[1],coords[0]);
+
     var marker = new google.maps.Marker({
-      position: latLng, //latLng
+      position: {lat: lat, lng: lng}, //latLng
       map: map
     });
+    var latLng = new google.maps.LatLng(marker.position.lat(coords[1]), marker.position.lng(coords[0]));
+    
+    callback(latLng);
   }
-  callback(coords);
   return;
 }
 
@@ -56,6 +60,7 @@ function markerCreate(e) {
   var name;
   var lat = e.latLng.lat();
   var lng = e.latLng.lng();
+  console.log(lat + ", " + lng);
 
   var grabMarkerInfo = function(response) {
     var json = JSON.parse(response);
