@@ -16,13 +16,41 @@ function initMap() {
       // console.log('Status:', this.status);
       // console.log('Headers:', this.getAllResponseHeaders());
       // console.log('Body:', this.responseText);
-      markers_callback(this.response, function(coords) {
-        bounds.extend(coords); //each marker
-      });
-      map.fitBounds(bounds); //auto-zoom
-      map.panToBounds(bounds) //auto-center
+
+      // markers_callback(this.response, function(coords) {
+        // bounds.extend(coords); //each marker
+      // });
+      // map.fitBounds(bounds); //auto-zoom
+      // map.panToBounds(bounds); //auto-center
+
+      //show all markers from mock api
+      // function markers_callback(response, callback) {
+        var json = JSON.parse(this.response);
+        console.log(json);
+
+          //if array is defined and has at least one element
+        if(typeof json !== 'undefined' && json.length > 0) {
+          for(var i =0; i < json.length; i++) {
+            var lat = json[i].lat;
+            var lng = json[i].lng;
+            var coords = [lng, lat];
+            
+            //create each marker
+            var marker = new google.maps.Marker({
+              position: {lat: lat, lng: lng},
+              map: map
+            });
+            // var latLng = new google.maps.LatLng(marker.position.lat(coords[1]), marker.position.lng(coords[0]));  
+            // callback(marker.position);
+            bounds.extend(marker.position); //each marker
+          }
+        }
+        map.fitBounds(bounds); //auto-zoom
+        map.panToBounds(bounds); //auto-center
+      // }
     }
   };
+
   request.send();  
   //show all markers  
 
@@ -31,24 +59,27 @@ function initMap() {
   });
 }
 
-//show all markers from mock api
-function markers_callback(response, callback) {
+
+
+var setInfo = function(response, callback) {
   var json = JSON.parse(response);
+  console.log(json);
 
-  for(var i =0; i < json.length; i++) {
-    var lat = json[i].lat;
-    var lng = json[i].lng;
-    var coords = [lng, lat];
+  var latLng = {lat: json.lat, lng: json.lng}
+  var note = json.note;
 
-    var marker = new google.maps.Marker({
-      position: {lat: lat, lng: lng}, //latLng
-      map: map
-    });
-    var latLng = new google.maps.LatLng(marker.position.lat(coords[1]), marker.position.lng(coords[0]));
-    
-    callback(latLng);
-  }
-  return;
+  var contentString = '<div id="content">'+
+      '<div id="siteNotice">'+
+      '</div>'+
+      '<h1 id="firstHeading" class="firstHeading">' + json.submitted_by + '</h1>'+
+      '<div id="bodyContent">'+
+      '<p>' + note + '</p>'+
+      '</div>'+
+      '</div>';
+
+  var markerInfo = { coords: latLng, info: contentString };
+
+  callback(markerInfo);
 }
 
 function markerCreate(e) {
@@ -61,25 +92,6 @@ function markerCreate(e) {
   var lat = e.latLng.lat();
   var lng = e.latLng.lng();
   console.log(lat + ", " + lng);
-
-  var grabMarkerInfo = function(response) {
-    var json = JSON.parse(response);
-    console.log(json);
-    var latLng = {lat: json.lat, lng: json.lng}
-    var note = json.note;
-
-    var contentString = '<div id="content">'+
-        '<div id="siteNotice">'+
-        '</div>'+
-        '<h1 id="firstHeading" class="firstHeading">' + json.submitted_by + '</h1>'+
-        '<div id="bodyContent">'+
-        '<p>' + note + '</p>'+
-        '</div>'+
-        '</div>';
-
-    //reset map to marker
-    placeMarkerAndPanTo(latLng, map, contentString);
-  }
 
   var submit = document.getElementById('submit');
   submit.addEventListener("click", function() { 
@@ -94,13 +106,20 @@ function markerCreate(e) {
     request.setRequestHeader('Content-Type', 'application/json');
 
     request.onreadystatechange = function () {
+      var content;
       if (this.readyState === 4) {
         // console.log('Status:', this.status);
         // console.log('Headers:', this.getAllResponseHeaders());
         // console.log('Body:', this.responseText);
 
         //attach info to a marker
-        grabMarkerInfo(this.response);
+        setInfo(this.response, function(object) {
+          // console.log(object);
+          content = object;
+          return content;   
+        });
+        //reset map to marker
+        placeMarkerAndPanTo(content.coords, map, content.info);
       }
     };
 
