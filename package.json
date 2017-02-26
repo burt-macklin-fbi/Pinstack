@@ -3,13 +3,11 @@
   "version": "1.0.0",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "watchify -t [ babelify --presets es2015 --presets react ] ./app/index.js -o main.js -v",
-    "build": "browserify -t [ babelify --presets es2015 --presets react ] ./app/index.js -o main.js"
+    // "watch": "watchify -t [ babelify --presets es2015 --presets react ] ./app/index.js -o main.js -v",
+    // "build": "browserify -t [ babelify --presets es2015 --presets react ] ./app/index.js -o main.js"
   },
   "license": "ISC",
   "dependencies": {
-    "react": "^15.1.0",
-    "react-dom": "^15.1.0",
     "watchify": "^3.7.0"
   },
   "devDependencies": {

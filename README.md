@@ -1,11 +1,5 @@
 # Pinstack
-Optional Description
+Easily create a simple map without knowing code, and share it so others can edit it!
 
-#To run a watch do:
-npm run watch
-
-#To build with Browserify do:
-npm run build
-
-NOTE:
-Currently, no need to run above commands because not using React right now. Simply using basic HTML/JS files plain Jane. Don't run anything
+#Development
+Currently using a basic setup with plain JS and installed Sass. No build setup.
