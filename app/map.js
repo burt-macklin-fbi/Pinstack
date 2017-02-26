@@ -17,37 +17,21 @@ function initMap() {
       // console.log('Headers:', this.getAllResponseHeaders());
       // console.log('Body:', this.responseText);
 
-      // markers_callback(this.response, function(coords) {
-        // bounds.extend(coords); //each marker
-      // });
-      // map.fitBounds(bounds); //auto-zoom
-      // map.panToBounds(bounds); //auto-center
+      var json = JSON.parse(this.response);
 
-      //show all markers from mock api
-      // function markers_callback(response, callback) {
-        var json = JSON.parse(this.response);
-        console.log(json);
+        //if array is defined and has at least one element
+      if(typeof json !== 'undefined' && json.length > 0) {
+        for(var i = 0; i < json.length; i++) {
 
-          //if array is defined and has at least one element
-        if(typeof json !== 'undefined' && json.length > 0) {
-          for(var i =0; i < json.length; i++) {
-            var lat = json[i].lat;
-            var lng = json[i].lng;
-            var coords = [lng, lat];
-            
-            //create each marker
-            var marker = new google.maps.Marker({
-              position: {lat: lat, lng: lng},
-              map: map
-            });
-            // var latLng = new google.maps.LatLng(marker.position.lat(coords[1]), marker.position.lng(coords[0]));  
-            // callback(marker.position);
-            bounds.extend(marker.position); //each marker
-          }
+          var content = setInfo(json[i]);
+          //map to marker
+          var marker = placeMarker(content.coords, map, content.info);
+          
+          bounds.extend(marker.position); //each marker
         }
-        map.fitBounds(bounds); //auto-zoom
-        map.panToBounds(bounds); //auto-center
-      // }
+      }
+      map.fitBounds(bounds); //auto-zoom
+      map.panToBounds(bounds); //auto-center
     }
   };
 
@@ -59,43 +43,17 @@ function initMap() {
   });
 }
 
-
-
-var setInfo = function(response, callback) {
-  var json = JSON.parse(response);
-  console.log(json);
-
-  var latLng = {lat: json.lat, lng: json.lng}
-  var note = json.note;
-
-  var contentString = '<div id="content">'+
-      '<div id="siteNotice">'+
-      '</div>'+
-      '<h1 id="firstHeading" class="firstHeading">' + json.submitted_by + '</h1>'+
-      '<div id="bodyContent">'+
-      '<p>' + note + '</p>'+
-      '</div>'+
-      '</div>';
-
-  var markerInfo = { coords: latLng, info: contentString };
-
-  callback(markerInfo);
-}
-
 function markerCreate(e) {
   //inhide info box
   var info = document.getElementById('info-box');
   info.className += " active";
 
   //get all info
-  var name;
-  var lat = e.latLng.lat();
-  var lng = e.latLng.lng();
-  console.log(lat + ", " + lng);
+  // var name;
 
   var submit = document.getElementById('submit');
   submit.addEventListener("click", function() { 
-    name = document.getElementById('name').value;
+    var name = document.getElementById('name').value;
     info.className += "info-box";
 
     //prepare mocky info
@@ -112,14 +70,14 @@ function markerCreate(e) {
         // console.log('Headers:', this.getAllResponseHeaders());
         // console.log('Body:', this.responseText);
 
+        var json = JSON.parse(this.response);
+
         //attach info to a marker
-        setInfo(this.response, function(object) {
-          // console.log(object);
-          content = object;
-          return content;   
-        });
+        var content = setInfo(json);
+      
         //reset map to marker
-        placeMarkerAndPanTo(content.coords, map, content.info);
+        placeMarker(content.coords, map, content.info);
+        map.panTo(content.coords);
       }
     };
 
@@ -134,7 +92,27 @@ function markerCreate(e) {
   }, false);
 }
 
-function placeMarkerAndPanTo(latLng, map, contentString) {
+function setInfo(response) {
+
+  var json = response;
+  var latLng = {lat: json.lat, lng: json.lng}
+  var note = json.note;
+
+  var contentString = '<div id="content">'+
+      '<div id="siteNotice">'+
+      '</div>'+
+      '<h1 id="firstHeading" class="firstHeading">' + json.submitted_by + '</h1>'+
+      '<div id="bodyContent">'+
+      '<p>' + note + '</p>'+
+      '</div>'+
+      '</div>';
+
+  var markerInfo = { coords: latLng, info: contentString };
+
+  return markerInfo;
+}
+
+function placeMarker(latLng, map, contentString) {
   var infowindow = new google.maps.InfoWindow({
     content: contentString
   });
@@ -145,7 +123,8 @@ function placeMarkerAndPanTo(latLng, map, contentString) {
   marker.addListener('click', function() {
     infowindow.open(map, marker);
   });
-  map.panTo(latLng);
+
+  return marker;
 }
 
 
