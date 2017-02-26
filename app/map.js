@@ -1,10 +1,10 @@
 
 var map;
+var markersAll = [];
+var infowindowsAll = [];
 
 function initMap() {
   var bounds = new google.maps.LatLngBounds();
-  // var loc = new google.maps.LatLng();
-  // bounds.extend(loc);
 
   map = new google.maps.Map(document.getElementById('map'), {});
   //get all markers from Apiary
@@ -38,58 +38,64 @@ function initMap() {
   request.send();  
   //show all markers  
 
-  map.addListener('click', function(e) {
-    markerCreate(e);
-  });
-}
+  var mapClick = map.addListener('click', markerCreate, false);
 
-function markerCreate(e) {
-  //inhide info box
-  var info = document.getElementById('info-box');
-  info.className += " active";
+  function markerCreate() {
+    google.maps.event.removeListener(mapClick);
+    //inhide info box
+    var info = document.getElementById('info-box');
+    info.className = "info-box active";
 
-  //get all info
-  // var name;
+    var submit = document.getElementById('submit');
+    submit.addEventListener("click", function() { 
+      var name = document.getElementById('name').value;
+      info.className = "info-box";
 
-  var submit = document.getElementById('submit');
-  submit.addEventListener("click", function() { 
-    var name = document.getElementById('name').value;
-    info.className += "info-box";
+      //prepare mocky info
+      var request = new XMLHttpRequest();
 
-    //prepare mocky info
-    var request = new XMLHttpRequest();
+      request.open('POST', 'https://private-979a5-test11968.apiary-mock.com/markers');
 
-    request.open('POST', 'https://private-979a5-test11968.apiary-mock.com/markers');
+      request.setRequestHeader('Content-Type', 'application/json');
 
-    request.setRequestHeader('Content-Type', 'application/json');
+      request.onreadystatechange = function () {
+        var content;
+        if (this.readyState === 4) {
+          // console.log('Status:', this.status);
+          // console.log('Headers:', this.getAllResponseHeaders());
+          // console.log('Body:', this.responseText);
 
-    request.onreadystatechange = function () {
-      var content;
-      if (this.readyState === 4) {
-        // console.log('Status:', this.status);
-        // console.log('Headers:', this.getAllResponseHeaders());
-        // console.log('Body:', this.responseText);
+          var json = JSON.parse(this.response);
 
-        var json = JSON.parse(this.response);
+          //attach info to a marker
+          var content = setInfo(json);
+        
+          //reset map to marker
+          var marker = placeMarker(content.coords, map, content.info);
+          //pan to the new marker
+          map.panTo(content.coords);
+        }
+      };
 
-        //attach info to a marker
-        var content = setInfo(json);
-      
-        //reset map to marker
-        placeMarker(content.coords, map, content.info);
-        map.panTo(content.coords);
-      }
-    };
+      var body = {
+        'submitted_by': 'Erika Carrington',
+        'lat': 32.934292,
+        'lng': -97.078065,
+        'note': 'This is the city I live in.'
+      };
 
-    var body = {
-      'submitted_by': 'Erika Carrington',
-      'lat': 32.934292,
-      'lng': -97.078065,
-      'note': 'This is the city I live in.'
-    };
+      request.send(JSON.stringify(body));
+    }, false);
 
-    request.send(JSON.stringify(body));
-  }, false);
+    var exit = document.querySelector('#exit');
+    exit.addEventListener('click', closeInput, false);
+    
+    function closeInput() {
+      var input = document.querySelector('#info-box');
+      input.className = "info-box";
+      map.addListener('click', markerCreate, false);
+    }
+  }
 }
 
 function setInfo(response) {
@@ -120,11 +126,35 @@ function placeMarker(latLng, map, contentString) {
     position: latLng,
     map: map
   });
-  marker.addListener('click', function() {
-    infowindow.open(map, marker);
-  });
+
+  //add to global array
+  markersAll.push(marker);
+  infowindowsAll.push(infowindow);
+
+  //add event listener to every marker
+  google.maps.event.addListener(marker, 'click', infoWindowHandler);
+
+  function infoWindowHandler() {
+    var input = document.getElementById('info-box');
+  
+    //per status of each marker
+    if(!marker.open){
+        infowindow.open(map, marker);
+        marker.open = true;
+        //close dialogue box
+        input.className = "info-box";
+    }
+    else {
+        infowindow.close();
+        marker.open = false;
+    }
+    //per status of all markers
+    google.maps.event.addListener(map, 'click', function() {
+        infowindow.close();
+        marker.open = false;
+    });
+  }
 
   return marker;
 }
-
 
