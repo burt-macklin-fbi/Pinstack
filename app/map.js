@@ -2,11 +2,89 @@
 var map;
 var markersAll = [];
 var infowindowsAll = [];
+var mapClick;
+var markerClickListener;
 
 function initMap() {
+  map = new google.maps.Map(document.getElementById('map'), {});
+
+  setupMap();
+}
+
+function closeInput() {
+  var input = document.querySelector('#info-box');
+  input.className = "info-box";
+  mapClick = map.addListener('click', showInputBox, false);
+}
+
+function showInputBox() {
+  //remove ability to click map when info box is open
+  google.maps.event.removeListener(mapClick);
+  //inhide info box
+  var info = document.getElementById('info-box');
+  info.className = "info-box active";
+
+  var infoName = document.getElementById("name");
+
+  //clear input when opened
+  infoName.value = "";
+  //focus input on opening
+  infoName.focus();
+
+  var submit = document.getElementById('submit');
+  submit.addEventListener("click", function() { 
+    var name = document.getElementById('name').value;
+    info.className = "info-box";
+
+    //prepare mocky info
+    var request = new XMLHttpRequest();
+
+    request.open('POST', 'https://private-979a5-test11968.apiary-mock.com/markers');
+
+    request.setRequestHeader('Content-Type', 'application/json');
+
+    request.onreadystatechange = function () {
+      var content;
+      if (this.readyState === 4) {
+        // console.log('Status:', this.status);
+        // console.log('Headers:', this.getAllResponseHeaders());
+        // console.log('Body:', this.responseText);
+
+        var json = JSON.parse(this.response);
+
+        //attach info to a marker
+        var content = setInfo(json);
+      
+        //reset map to marker
+        var marker = placeMarker(content.coords, map, content.info);
+        //pan to the new marker
+        map.panTo(content.coords);
+      }
+    };
+
+    var body = {
+      'submitted_by': 'Erika Carrington',
+      'lat': 32.934292,
+      'lng': -97.078065,
+      'note': 'This is the city I live in.'
+    };
+
+    request.send(JSON.stringify(body));
+  }, false);
+
+  var exit = document.querySelector('#exit');
+  exit.addEventListener('click', closeInput, false);
+  
+  // function closeInput() {
+  //   var input = document.querySelector('#info-box');
+  //   input.className = "info-box";
+  //   map.addListener('click', showInputBox, false);
+  // }
+}
+
+function setupMap() {
   var bounds = new google.maps.LatLngBounds();
 
-  map = new google.maps.Map(document.getElementById('map'), {});
   //get all markers from Apiary
   var request = new XMLHttpRequest();
   request.open('GET', 'https://private-979a5-test11968.apiary-mock.com/markers');
@@ -38,64 +116,7 @@ function initMap() {
   request.send();  
   //show all markers  
 
-  var mapClick = map.addListener('click', markerCreate, false);
-
-  function markerCreate() {
-    google.maps.event.removeListener(mapClick);
-    //inhide info box
-    var info = document.getElementById('info-box');
-    info.className = "info-box active";
-
-    var submit = document.getElementById('submit');
-    submit.addEventListener("click", function() { 
-      var name = document.getElementById('name').value;
-      info.className = "info-box";
-
-      //prepare mocky info
-      var request = new XMLHttpRequest();
-
-      request.open('POST', 'https://private-979a5-test11968.apiary-mock.com/markers');
-
-      request.setRequestHeader('Content-Type', 'application/json');
-
-      request.onreadystatechange = function () {
-        var content;
-        if (this.readyState === 4) {
-          // console.log('Status:', this.status);
-          // console.log('Headers:', this.getAllResponseHeaders());
-          // console.log('Body:', this.responseText);
-
-          var json = JSON.parse(this.response);
-
-          //attach info to a marker
-          var content = setInfo(json);
-        
-          //reset map to marker
-          var marker = placeMarker(content.coords, map, content.info);
-          //pan to the new marker
-          map.panTo(content.coords);
-        }
-      };
-
-      var body = {
-        'submitted_by': 'Erika Carrington',
-        'lat': 32.934292,
-        'lng': -97.078065,
-        'note': 'This is the city I live in.'
-      };
-
-      request.send(JSON.stringify(body));
-    }, false);
-
-    var exit = document.querySelector('#exit');
-    exit.addEventListener('click', closeInput, false);
-    
-    function closeInput() {
-      var input = document.querySelector('#info-box');
-      input.className = "info-box";
-      map.addListener('click', markerCreate, false);
-    }
-  }
+  mapClick = map.addListener('click', showInputBox, false);
 }
 
 function setInfo(response) {
@@ -132,7 +153,7 @@ function placeMarker(latLng, map, contentString) {
   infowindowsAll.push(infowindow);
 
   //add event listener to every marker
-  google.maps.event.addListener(marker, 'click', infoWindowHandler);
+  markerClickListener = google.maps.event.addListener(marker, 'click', infoWindowHandler);
 
   function infoWindowHandler() {
     var input = document.getElementById('info-box');
@@ -152,6 +173,7 @@ function placeMarker(latLng, map, contentString) {
     google.maps.event.addListener(map, 'click', function() {
         infowindow.close();
         marker.open = false;
+        showInputBox();
     });
   }
 
