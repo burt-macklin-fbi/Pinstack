@@ -3,7 +3,6 @@ var map;
 var markersAll = [];
 var infowindowsAll = [];
 var mapClick;
-var markerClickListener;
 
 function initMap() {
   map = new google.maps.Map(document.getElementById('map'), {});
@@ -32,6 +31,7 @@ function showInputBox() {
   infoName.focus();
 
   var submit = document.getElementById('submit');
+
   submit.addEventListener("click", function() { 
     var name = document.getElementById('name').value;
     info.className = "info-box";
@@ -59,6 +59,7 @@ function showInputBox() {
         var marker = placeMarker(content.coords, map, content.info);
         //pan to the new marker
         map.panTo(content.coords);
+        mapClick = map.addListener('click', showInputBox, false);
       }
     };
 
@@ -74,12 +75,6 @@ function showInputBox() {
 
   var exit = document.querySelector('#exit');
   exit.addEventListener('click', closeInput, false);
-  
-  // function closeInput() {
-  //   var input = document.querySelector('#info-box');
-  //   input.className = "info-box";
-  //   map.addListener('click', showInputBox, false);
-  // }
 }
 
 function setupMap() {
