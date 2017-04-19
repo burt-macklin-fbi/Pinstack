@@ -1,12 +1,14 @@
-
 var map;
 var markersAll = [];
 var infowindowsAll = [];
 var mapClick;
+var bounds;
 
 function initMap() {
-  map = new google.maps.Map(document.getElementById('map'), {});
+  bounds = new google.maps.LatLngBounds();
 
+  map = new google.maps.Map(document.getElementById('map'), {});
+  console.log(map);
   setupMap();
 }
 
@@ -54,6 +56,7 @@ function showInputBox() {
 
         //attach info to a marker
         var content = setInfo(json);
+        // console.log(content);
       
         //reset map to marker
         var marker = placeMarker(content.coords, map, content.info);
@@ -78,13 +81,15 @@ function showInputBox() {
 }
 
 function setupMap() {
-  var bounds = new google.maps.LatLngBounds();
+  // console.log("setupMap is working");
+  // var bounds = new google.maps.LatLngBounds();
 
   //get all markers from Apiary
   var request = new XMLHttpRequest();
   request.open('GET', 'https://private-979a5-test11968.apiary-mock.com/markers');
 
   request.onreadystatechange = function () {
+    // console.log("get apiary-mock");
     if (this.readyState === 4) {
       // console.log('Status:', this.status);
       // console.log('Headers:', this.getAllResponseHeaders());
@@ -97,10 +102,12 @@ function setupMap() {
         for(var i = 0; i < json.length; i++) {
 
           var content = setInfo(json[i]);
+          // console.log(content);
           //map to marker
           var marker = placeMarker(content.coords, map, content.info);
-          
+          // console.log(marker);
           bounds.extend(marker.position); //each marker
+          // console.log(bounds);
         }
       }
       map.fitBounds(bounds); //auto-zoom
@@ -174,4 +181,3 @@ function placeMarker(latLng, map, contentString) {
 
   return marker;
 }
-
