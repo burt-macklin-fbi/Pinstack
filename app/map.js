@@ -20,7 +20,6 @@ function closeInput() {
 var exit = document.querySelector('#exit');
 exit.addEventListener('click', closeInput, false);
 
-
 function showInputBox() {
   //remove ability to click map when info box is open
   google.maps.event.removeListener(mapClick);
@@ -81,9 +80,6 @@ function showInputBox() {
 }
 
 function setupMap() {
-  // console.log("setupMap is working");
-  // var bounds = new google.maps.LatLngBounds();
-
   //get all markers from Apiary
   var request = new XMLHttpRequest();
   request.open('GET', 'https://private-979a5-test11968.apiary-mock.com/markers');
@@ -128,13 +124,9 @@ function setInfo(response) {
   var note = json.note;
 
   var contentString = '<div id="content">'+
-      '<div id="siteNotice">'+
-      '</div>'+
-      '<h1 id="firstHeading" class="firstHeading">' + json.submitted_by + '</h1>'+
-      '<div id="bodyContent">'+
-      '<p>' + note + '</p>'+
-      '</div>'+
-      '</div>';
+      '<h1 class="user-name">' + json.submitted_by + '</h1>'+
+      '<p>' + note + '</p>' + '</div>' + 
+      '<button id="remove">Delete</button>';
 
   var markerInfo = { coords: latLng, info: contentString };
 
@@ -157,6 +149,23 @@ function placeMarker(latLng, map, contentString) {
   //add event listener to every marker
   markerClickListener = google.maps.event.addListener(marker, 'click', infoWindowHandler);
 
+  function deleteMarker() {
+    console.log("delete!");
+    var request = new XMLHttpRequest();
+
+    request.open('DELETE', 'https://private-c0103-pinstack.apiary-mock.com/markers/marker_id');
+
+    request.onreadystatechange = function () {
+      if (this.readyState === 4) {
+        console.log('Status:', this.status);
+        console.log('Headers:', this.getAllResponseHeaders());
+        console.log('Body:', this.responseText);
+      }
+    };
+
+    request.send();
+  }
+
   function infoWindowHandler() {
     var input = document.getElementById('info-box');
   
@@ -177,6 +186,8 @@ function placeMarker(latLng, map, contentString) {
         marker.open = false;
         showInputBox();
     });
+    var remove = document.querySelector('#remove');
+    remove.addEventListener('click', deleteMarker, false);
   }
 
   return marker;
