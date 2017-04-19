@@ -8,7 +8,7 @@ function initMap() {
   bounds = new google.maps.LatLngBounds();
 
   map = new google.maps.Map(document.getElementById('map'), {});
-  console.log(map);
+
   setupMap();
 }
 
@@ -17,6 +17,9 @@ function closeInput() {
   input.className = "info-box";
   mapClick = map.addListener('click', showInputBox, false);
 }
+var exit = document.querySelector('#exit');
+exit.addEventListener('click', closeInput, false);
+
 
 function showInputBox() {
   //remove ability to click map when info box is open
@@ -75,9 +78,6 @@ function showInputBox() {
 
     request.send(JSON.stringify(body));
   }, false);
-
-  var exit = document.querySelector('#exit');
-  exit.addEventListener('click', closeInput, false);
 }
 
 function setupMap() {
