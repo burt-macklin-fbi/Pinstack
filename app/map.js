@@ -150,16 +150,17 @@ function placeMarker(latLng, map, contentString) {
   markerClickListener = google.maps.event.addListener(marker, 'click', infoWindowHandler);
 
   function deleteMarker() {
-    console.log("delete!");
     var request = new XMLHttpRequest();
 
     request.open('DELETE', 'https://private-c0103-pinstack.apiary-mock.com/markers/marker_id');
 
     request.onreadystatechange = function () {
       if (this.readyState === 4) {
-        console.log('Status:', this.status);
-        console.log('Headers:', this.getAllResponseHeaders());
-        console.log('Body:', this.responseText);
+        // console.log('Status:', this.status);
+        // console.log('Headers:', this.getAllResponseHeaders());
+        // console.log('Body:', this.responseText);
+        console.log(this);
+        console.log("deleted!");
       }
     };
 
